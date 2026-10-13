@@ -1,0 +1,26 @@
+{
+  "name": "aegis-earth-mobile",
+  "version": "0.3.0-pages",
+  "private": true,
+  "type": "module",
+  "description": "AEGIS Earth mobile 3D geospatial viewer, PWA and Android Capacitor",
+  "scripts": {
+    "dev": "npx http-server . -p 4173 -c-1",
+    "test": "node -e \"console.log('Pages app: no automated integration test configured')\"",
+    "android:add": "npx cap add android",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "http-server": "^14.1.1"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
