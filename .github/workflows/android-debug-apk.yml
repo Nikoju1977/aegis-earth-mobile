@@ -5,6 +5,8 @@ on:
     paths:
       - index.html
       - sw.js
+      - extras.js
+      - extras.css
       - manifest.webmanifest
       - icon.svg
       - www/**
@@ -77,8 +79,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="v0.4.0-android-preview"
-          APK="AEGIS-Earth-Mobile-v0.4-android-debug.apk"
+          TAG="v0.5.0-android-preview"
+          APK="AEGIS-Earth-Mobile-v0.5-android-debug.apk"
           cp android/app/build/outputs/apk/debug/app-debug.apk "$APK"
           sha256sum "$APK"
           if gh release view "$TAG" >/dev/null 2>&1; then
@@ -87,9 +89,9 @@ jobs:
           else
             gh release create "$TAG" "$APK" \
               --target "$GITHUB_SHA" \
-              --title "AEGIS Earth Mobile v0.4 — Android preview" \
+              --title "AEGIS Earth Mobile v0.5 — public cameras and geospatial feeds" \
               --prerelease \
-              --notes "APK Android de test, pour installation manuelle. Non signé pour Google Play. Version web/Android synchronisée. Connexion nécessaire pour les services de globe et les API publiques. Cette version statique ne comprend pas les avions ADS-B, les navires AIS ni les caméras live avec serveur. Les données locales peuvent être perdues en cas de désinstallation."
+              --notes "Version Android de test. Nouvelles caméras TfL, consultation vidéos publiques, avions proches si API/CORS disponibles, météo Open-Meteo, qualité de l’air, Kp NOAA et positions de navires GeoJSON importées. AIS temps réel nécessite un serveur privé : aucun suivi maritime simulé. Non signé pour Google Play ; les mises à jour debug peuvent nécessiter une désinstallation et entraîner la perte des favoris locaux."
             echo "Created public Android preview release"
           fi
           echo "Public release: https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
