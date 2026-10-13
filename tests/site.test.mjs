@@ -9,7 +9,7 @@ const text = path => readFileSync(new URL(path, ROOT), 'utf8');
 const sha = content => createHash('sha256').update(content).digest('hex');
 
 test('Android/Pages use the exact same assets', () => {
-  for (const file of ['index.html', 'sw.js', 'manifest.webmanifest', 'icon.svg']) {
+  for (const file of ['index.html', 'sw.js', 'manifest.webmanifest', 'icon.svg', 'extras.js', 'extras.css']) {
     assert.equal(sha(text(file)), sha(text('www/' + file)), file + ' diverged');
   }
 });
@@ -19,6 +19,7 @@ test('HTML inline scripts are syntactically valid JavaScript', () => {
   const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
   assert.ok(scripts.length >= 1, 'Expected at least one inline script');
   for (const [, code] of scripts) new Script(code, { filename: 'index.html inline script' });
+  new Script(text('extras.js'), { filename: 'extras.js' });
 });
 
 test('Mobile touch panel and source transparency are present', () => {
@@ -31,6 +32,17 @@ test('Mobile touch panel and source transparency are present', () => {
   assert.match(html, /data-tab="radar"/);
 });
 
+test('public sources and feature wiring use no embedded credentials', () => {
+  const js = text('extras.js');
+  const html = text('index.html');
+  for (const src of ['api.tfl.gov.uk','api.airplanes.live','api.open-meteo.com','air-quality-api.open-meteo.com','services.swpc.noaa.gov']) assert.ok(js.includes(src), src + ' not wired');
+  assert.match(html, /AEGISBridge/);
+  assert.match(html, /extras\.js/);
+  assert.match(html, /extras\.css/);
+  assert.match(js, /indisponible/);
+  assert.match(js, /GeoJSON/);
+  assert.doesNotMatch(js, /AISSTREAM_API_KEY\s*=\s*['"][^'"]+['"]/);
+});
 test('PWA manifest is usable on Android', () => {
   const manifest = JSON.parse(text('manifest.webmanifest'));
   assert.equal(manifest.display, 'standalone');
