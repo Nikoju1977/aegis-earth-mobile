@@ -1,0 +1,9 @@
+{
+  "appId": "com.aegis.earthmobile",
+  "appName": "AEGIS Earth Mobile",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
