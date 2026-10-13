@@ -12,19 +12,24 @@ concurrency:
   cancel-in-progress: true
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: \${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prepare clean static site
+        run: |
+          mkdir -p _site
+          cp index.html sw.js manifest.webmanifest icon.svg _site/
+          touch _site/.nojekyll
       - name: Configure Pages
         uses: actions/configure-pages@v5
-      - name: Upload static site
+      - name: Upload only public site assets
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: _site
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
