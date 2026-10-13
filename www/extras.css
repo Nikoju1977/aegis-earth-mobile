@@ -1,0 +1,37 @@
+
+/* AEGIS Earth 0.5 : thumb-friendly module navigation & public camera viewer */
+#nav.nav-extended {
+ display:flex;overflow-x:auto;overscroll-behavior-x:contain;
+ justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+ gap:5px;padding-inline:10px;scroll-snap-type:x proximity;
+}
+#nav.nav-extended::-webkit-scrollbar{display:none}
+#nav.nav-extended button{
+ flex:0 0 auto;min-width:79px;min-height:44px;padding:11px 8px;
+ font-size:12px;scroll-snap-align:center;
+}
+#nav.nav-extended button.selected {border:1px solid rgba(125,238,205,.26)}
+#bodyPanel h2{font-size:21px}
+#bodyPanel .extraTag{white-space:nowrap;border:1px solid #41626b;border-radius:12px;background:#122b35;padding:4px 7px;font-size:10px;color:#a3d9d5}
+.cam-card{display:grid;grid-template-columns:minmax(95px,36%) minmax(0,1fr);gap:11px;background:#0c2333;border:1px solid rgba(125,189,219,.17);border-radius:13px;padding:9px;min-height:118px}
+.cam-preview{position:relative;border-radius:9px;overflow:hidden;background:linear-gradient(130deg,#193342,#060f1e);min-height:112px;display:flex;align-items:center;justify-content:center;color:#92a9b7;font-size:12px}
+.cam-preview img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.cam-detail{min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px}
+.cam-detail strong{font-size:12px;line-height:1.3;overflow-wrap:anywhere}
+.cam-detail small{font-size:10px;color:#9ab9c9}
+.cam-actions{display:flex;gap:5px;flex-wrap:wrap}
+.cam-actions .btn{font-size:11px;padding:7px 8px;min-height:35px}
+.reading-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:9px 0}
+.reading{display:flex;flex-direction:column;background:#102838;border:1px solid #275063;border-radius:12px;padding:10px;min-height:95px;gap:4px}
+.reading b{font-size:22px;color:#81f2d9;font-variant-numeric:tabular-nums}
+.reading small{font-size:11px;color:#9db7c7}
+.kp-block{display:flex;align-items:center;gap:14px;background:#122d3e;padding:16px;border:1px solid #38616a;border-radius:15px;margin:14px 0}
+.kp-block strong{font-size:52px;letter-spacing:-2px;color:#7fe5d5;font-variant-numeric:tabular-nums}
+.kp-block span{font-size:12px;color:#aac7d3}
+.cam-modal{position:fixed;z-index:31;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,5,13,.92);padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom))}
+.cam-dialog{width:min(100%,640px);max-height:91dvh;overflow:auto;border-radius:18px;padding:15px;background:#081d2c;border:1px solid #416471;box-shadow:0 22px 90px #000b}
+.cam-dialog h2{font-size:17px}
+.cam-dialog video,.cam-dialog img{width:100%;max-height:65dvh;object-fit:contain;background:#050b11;border:1px solid #263c4c;border-radius:10px}
+.cam-dialog .row .btn{min-height:42px;display:inline-flex;align-items:center}
+#bodyPanel .row a.btn{display:inline-flex;align-items:center;max-width:100%;min-height:42px;text-decoration:none}
+@media(max-width:390px){.cam-card{grid-template-columns:105px minmax(0,1fr)}.cam-preview{min-height:105px}#nav.nav-extended button{min-width:75px}}
