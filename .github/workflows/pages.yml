@@ -22,7 +22,7 @@ jobs:
       - name: Prepare clean static site
         run: |
           mkdir -p _site
-          cp index.html sw.js manifest.webmanifest icon.svg _site/
+          cp index.html sw.js manifest.webmanifest icon.svg extras.js extras.css _site/
           touch _site/.nojekyll
       - name: Configure Pages
         uses: actions/configure-pages@v5
