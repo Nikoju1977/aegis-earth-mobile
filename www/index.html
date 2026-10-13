@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060e19"><meta name="description" content="AEGIS Earth, globe 3D et signaux géospatiaux publics pour mobile">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.132/Build/Cesium/Widgets/widgets.css">
+<title>AEGIS EARTH — Mobile</title>
+<style>
+:root{color-scheme:dark;--bg:#060e19;--panel:rgba(8,20,34,.93);--line:rgba(125,189,219,.18);--mint:#78efd5;--faint:#86a1b7;--text:#e9f5ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}
+button,input,select{font:inherit}button{cursor:pointer;color:inherit}button:focus-visible,input:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+#globe{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,#112d43,#030812)}
+#fallback{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:30px;background:radial-gradient(circle at center,#183e52,#030912);color:#c9e1ed;z-index:1}
+#globe.creditless .cesium-widget-credits{display:none}.cesium-viewer-bottom{bottom:80px!important;opacity:.7;font-size:10px}
+.shade{position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,12,22,.65),transparent 25%,transparent 65%,rgba(4,12,22,.72));z-index:2}
+header{position:fixed;z-index:5;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 12px) 15px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(3,11,21,.9),rgba(3,11,21,.4))}
+.mark{width:38px;height:38px;border:1px solid var(--mint);border-radius:12px;display:grid;place-items:center;color:var(--mint);font-size:24px;box-shadow:inset 0 0 17px #78efd51a}
+.brand{flex:1;min-width:0}.brand strong{letter-spacing:2.5px;font-size:15px}.brand strong em{color:var(--mint);font-style:normal}.brand small{display:block;font-size:9px;letter-spacing:1.5px;color:var(--faint)}
+.status{font-size:10px;color:var(--mint);border:1px solid #78efd546;padding:7px 9px;border-radius:20px;background:#05191aa8;white-space:nowrap}
+.iconBtn{background:#0e2334c9;border:1px solid var(--line);border-radius:11px;min-width:38px;height:38px;display:grid;place-items:center}
+#hud{position:fixed;top:calc(env(safe-area-inset-top) + 84px);left:15px;z-index:4;max-width:300px;background:linear-gradient(120deg,#081b2ccc,#07111c99);border:1px solid var(--line);border-radius:14px;padding:12px 14px;backdrop-filter:blur(16px)}
+.eyebrow{font-size:10px;letter-spacing:1.8px;color:var(--mint);font-weight:700}#hud h1{font-size:15px;letter-spacing:1px;margin:5px 0 10px}#stats{display:flex;gap:15px;align-items:center}#stats div{display:flex;flex-direction:column}#stats small{font-size:9px;color:var(--faint)}#stats b{font-size:16px}
+#actions{position:fixed;z-index:4;right:14px;top:calc(env(safe-area-inset-top) + 94px);display:flex;flex-direction:column;gap:9px}
+#actions button{width:43px;height:43px;background:#091c2ce8;border:1px solid var(--line);border-radius:12px;font-size:19px}
+#actions button.active{border-color:var(--mint);color:var(--mint)}
+#sheet{position:fixed;z-index:7;bottom:0;left:0;right:0;height:min(48vh,420px);min-height:295px;padding-bottom:env(safe-area-inset-bottom);border-radius:22px 22px 0 0;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(22px);box-shadow:0 -22px 55px #0007;transition:height .25s}
+#sheet.expanded{height:78vh}.handle{display:block;background:#6e99aa;width:42px;height:5px;margin:11px auto;border:0;border-radius:6px}
+#bodyPanel{height:calc(100% - 52px);overflow:auto;padding:8px 16px 24px;overscroll-behavior:contain}
+.nav{display:flex;align-items:center;justify-content:space-around;gap:6px;padding:9px 12px 0;border-top:1px solid var(--line);height:51px}
+.nav button{flex:1;background:transparent;border:0;border-radius:7px;padding:6px 3px;font-size:11px;color:#8ba5b8}
+.nav button.selected{color:var(--mint);background:#76ead00e}
+h2{font-size:22px;letter-spacing:-.5px;margin:8px 0}h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:19px 0 8px}
+.muted{color:var(--faint);font-size:12px}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.split{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chip{border:1px solid var(--line);background:#0d2634;color:#abc5d9;border-radius:14px;padding:9px 11px;font-size:11px}
+.chip.on{border-color:#70e3ce87;color:var(--mint);background:#1c554b48}
+.list{display:grid;gap:7px;margin-top:10px}.item{width:100%;text-align:left;display:flex;align-items:center;gap:9px;background:#0b1d2d;border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.item .dot{width:8px;height:8px;border-radius:50%;background:var(--mint);flex-shrink:0}
+.item .contents{flex:1;min-width:0}.item strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item small{display:block;color:var(--faint);font-size:10px;margin-top:4px}.item .arrow{color:var(--mint);font-size:19px}
+.btn{border:1px solid var(--line);background:#112f3e;padding:10px 12px;border-radius:10px}.btn.primary{border-color:#7be5d46d;background:#18544c;color:#c0ffee}
+.field{display:block;background:#081b2a;border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);width:100%;min-width:0}
+#searchShade{display:none;position:fixed;inset:0;z-index:11;background:#040a12d9;padding:calc(env(safe-area-inset-top) + 78px) 18px 18px}
+#searchShade.open{display:block}.searchBox{max-width:620px;margin:auto;padding:17px;background:#07192a;border:1px solid var(--line);border-radius:15px}
+#toast{position:fixed;z-index:15;left:50%;bottom:calc(50vh + 10px);transform:translateX(-50%);max-width:90%;text-align:center;background:#092e34;border:1px solid #78efd562;padding:11px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s}#toast.show{opacity:1}
+#legend{position:fixed;right:15px;bottom:calc(min(48vh,420px) + 15px);z-index:4;font-size:10px;color:#89aabc;text-align:right}a{color:var(--mint)}.warning{color:#edb77a}
+@media(min-width:860px){#sheet{max-width:420px;left:16px;right:auto;bottom:15px;border-radius:20px;height:55vh}#sheet.expanded{height:82vh}#legend{bottom:20px}#hud{top:90px}}
+@media(max-height:680px){#hud{display:none}#sheet{height:53vh;min-height:235px}}
+</style>
+</head>
+<body>
+<div id="globe" aria-label="Globe tridimensionnel"></div><div id="fallback"><div><h2>Globe 3D indisponible</h2><p>Vérifiez votre connexion et les ressources Cesium.</p><button class="btn" onclick="location.reload()">Réessayer</button></div></div><div class="shade"></div>
+<header><div class="mark">◎</div><div class="brand"><strong>AEGIS <em>EARTH</em></strong><small>MOBILE COMMAND / PUBLIC DATA</small></div><span class="status" id="status">INITIALISATION</span><button class="iconBtn" id="searchBtn" title="Rechercher un lieu">⌕</button></header>
+<div id="hud"><div class="eyebrow">◆ SITUATION PLANÉTAIRE</div><h1>OBSERVATION TERRESTRE</h1><div id="stats"><div><small>SÉISMES</small><b id="quakeCount">—</b></div><div><small>ÉVÉNEMENTS</small><b id="eventCount">—</b></div><div><small>ISS</small><b id="issCount">—</b></div></div></div>
+<div id="actions"><button id="locate" title="Ma position">⌖</button><button id="home" title="Vue mondiale">◎</button><button id="draw" title="Mesurer des distances">⌁</button><button id="reload" title="Actualiser">↻</button></div>
+<div id="legend">USGS · NASA · Cesium<br>Signaux publics non exhaustifs</div>
+<div id="sheet"><button class="handle" id="handle" aria-label="Étendre le panneau"></button><div class="nav" id="nav"><button class="selected" data-tab="live">◉ Flux</button><button data-tab="layers">▤ Couches</button><button data-tab="radar">◎ Radar</button><button data-tab="saved">☆ Lieux</button><button data-tab="about">⚙ Infos</button></div><div id="bodyPanel"></div></div>
+<div id="searchShade"><div class="searchBox"><div class="split"><h2>Rechercher un lieu</h2><button class="iconBtn" id="closeSearch">✕</button></div><div class="row"><input class="field" id="query" placeholder="Ville ou latitude, longitude" style="flex:1"><button class="btn primary" id="submitSearch">Rechercher</button></div><div class="list" id="searchResults"></div><p class="muted">Recherche géographique via Photon / OpenStreetMap. Les coordonnées « 48.86, 2.35 » sont acceptées directement.</p></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>window.CESIUM_BASE_URL="https://cesium.com/downloads/cesiumjs/releases/1.132/Build/Cesium/";</script>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.132/Build/Cesium/Cesium.js"></script>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s),escapeHTML=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store=(k,x)=>{try{localStorage.setItem("aegis-pages:"+k,JSON.stringify(x))}catch(e){}},load=(k,d)=>{try{return JSON.parse(localStorage.getItem("aegis-pages:"+k))??d}catch(e){return d}};
+const S={v:null,tab:"live",data:{quake:[],event:[],iss:[]},health:{quake:"en attente",event:"en attente",iss:"en attente"},layers:load("layers",{quake:true,event:true,iss:true}),bookmarks:load("bookmarks",[]),center:{lat:20,lon:5},mode:"",route:[],line:[],refreshAt:0};
+const source={quake:{name:"Séismes",color:"#f2b975"},event:{name:"Phénomènes naturels",color:"#ff8f88"},iss:{name:"Station spatiale ISS",color:"#c5adfb"}};
+let t=0;function toast(s){const e=$("#toast");e.textContent=s;e.classList.add("show");clearTimeout(t);t=setTimeout(()=>e.classList.remove("show"),3500)}
+function distance(a,b){const d=Math.PI/180,p=(b.lat-a.lat)*d,l=(b.lon-a.lon)*d,x=Math.sin(p/2)**2+Math.cos(a.lat*d)*Math.cos(b.lat*d)*Math.sin(l/2)**2;return 12742.0176*Math.asin(Math.min(1,Math.sqrt(x)))}
+function fly(lat,lon,height=1400000){S.center={lat,lon};if(S.v)S.v.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(lon,lat,height),duration:2})}
+function point(lat,lon,color,size=9){return S.v.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat),point:{pixelSize:size,color:Cesium.Color.fromCssColorString(color),outlineColor:Cesium.Color.fromCssColorString("#04121b"),outlineWidth:2,disableDepthTestDistance:Number.POSITIVE_INFINITY}})}
+function centerCamera(){if(!S.v)return S.center;try{const c=S.v.camera.positionCartographic;return {lat:Cesium.Math.toDegrees(c.latitude),lon:Cesium.Math.toDegrees(c.longitude)}}catch(e){return S.center}}
+function init(){if(!window.Cesium){$("#fallback").style.display="flex";toast("Chargement 3D indisponible");return}try{
+const layer=new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",credit:"© Esri, Maxar, Earthstar Geographics and GIS User Community",maximumLevel:18}));
+S.v=new Cesium.Viewer("globe",{baseLayer:layer,baseLayerPicker:false,geocoder:false,homeButton:false,fullscreenButton:false,sceneModePicker:false,navigationHelpButton:false,timeline:false,animation:false,infoBox:false,selectionIndicator:false,terrainProvider:new Cesium.EllipsoidTerrainProvider(),requestRenderMode:true});
+S.v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(5,18,19500000)});
+S.v.scene.globe.enableLighting=false;
+const h=new Cesium.ScreenSpaceEventHandler(S.v.canvas);h.setInputAction(ev=>{const picked=S.v.camera.pickEllipsoid(ev.position);if(!picked)return;const c=Cesium.Cartographic.fromCartesian(picked),lat=Cesium.Math.toDegrees(c.latitude),lon=Cesium.Math.toDegrees(c.longitude);if(S.mode==="measure"){S.route.push({lat,lon});drawRoute();return}const found=S.v.scene.pick(ev.position);if(found&&found.id&&found.id.aegis){const p=found.id.aegis;toast(p.name);fly(p.lat,p.lon,750000)}},Cesium.ScreenSpaceEventType.LEFT_CLICK);
+S.v.scene.requestRender();
+}catch(e){console.warn(e);$("#fallback").style.display="flex";toast("Initialisation du globe impossible")} }
+function renderGlobe(){if(!S.v)return;S.v.entities.removeAll();for(const [key,items]of Object.entries(S.data)){if(!S.layers[key])continue;items.forEach(o=>{const entity=point(o.lat,o.lon,source[key].color,key==="iss"?14:key==="quake"?Math.max(5,Math.min(16,5+(o.mag||0)*1.5)):7);entity.aegis=o})}drawRoute();S.v.scene.requestRender()}
+function drawRoute(){if(!S.v)return;S.line.forEach(e=>S.v.entities.remove(e));S.line=[];if(S.route.length){S.route.forEach(p=>S.line.push(point(p.lat,p.lon,"#78efd5",7)));if(S.route.length>1)S.line.push(S.v.entities.add({polyline:{positions:Cesium.Cartesian3.fromDegreesArray(S.route.flatMap(p=>[p.lon,p.lat])),width:3,material:Cesium.Color.fromCssColorString("#78efd5")}}))}let km=0;for(let i=1;i<S.route.length;i++)km+=distance(S.route[i-1],S.route[i]);if(S.mode==="measure")toast(S.route.length+" points · "+km.toFixed(1)+" km")}
+const fetchJson=async(url,ms=10000)=>{const c=new AbortController(),tid=setTimeout(()=>c.abort(),ms);try{const r=await fetch(url,{signal:c.signal,headers:{Accept:"application/json"}});if(!r.ok)throw Error("HTTP "+r.status);return await r.json()}finally{clearTimeout(tid)}};
+async function loadFeed(key,url,parse){S.health[key]="chargement";try{const raw=await fetchJson(url);S.data[key]=parse(raw);S.health[key]="reçu";sessionStorage.setItem("aegis-"+key,JSON.stringify({at:Date.now(),data:S.data[key]}))}catch(e){const cached=(()=>{try{return JSON.parse(sessionStorage.getItem("aegis-"+key))}catch(e){return null}})();S.health[key]=cached?"archive":"indisponible";S.data[key]=cached?cached.data:[]}renderGlobe();render();updateStatus()}
+function updateStatus(){const good=Object.values(S.health).filter(x=>x==="reçu").length;$("#status").textContent=good+"/3 SOURCES";$("#quakeCount").textContent=S.data.quake.length||"—";$("#eventCount").textContent=S.data.event.length||"—";$("#issCount").textContent=S.data.iss.length?"ACTIF":"—"}
+function refresh(){if(Date.now()-S.refreshAt<12000){toast("Actualisation limitée à 12 secondes");return}S.refreshAt=Date.now();
+loadFeed("quake","https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson",x=>(x.features||[]).slice(0,500).map(f=>({id:"q"+f.id,name:f.properties?.place||"Séisme",lat:f.geometry?.coordinates?.[1],lon:f.geometry?.coordinates?.[0],mag:f.properties?.mag,time:f.properties?.time,source:"USGS",type:"quake"})).filter(o=>Number.isFinite(o.lat)&&Number.isFinite(o.lon)));
+loadFeed("event","https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=160",x=>(x.events||[]).map(e=>{const g=e.geometry?.at(-1),c=g?.coordinates;return {id:"e"+e.id,name:e.title,lat:c?.[1],lon:c?.[0],time:g?.date,source:"NASA EONET",type:"event"}}).filter(o=>Number.isFinite(o.lat)&&Number.isFinite(o.lon)));
+loadFeed("iss","https://api.wheretheiss.at/v1/satellites/25544",x=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude)?[{id:"iss",name:"International Space Station",lat:x.latitude,lon:x.longitude,time:new Date().toISOString(),source:"Where The ISS At",type:"iss"}]:[]);
+}
+const fmtTime=x=>{try{return new Date(x).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}catch(e){return "—"}};
+function list(items){return items.map(p=>'<button class="item" data-lat="'+p.lat+'" data-lon="'+p.lon+'"><i class="dot" style="background:'+source[p.type].color+'"></i><span class="contents"><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.source)+' · '+fmtTime(p.time)+(p.mag!=null?' · M '+Number(p.mag).toFixed(1):'')+'</small></span><span class="arrow">↗</span></button>').join("")}
+function render(){const box=$("#bodyPanel");if(S.tab==="live"){const all=Object.values(S.data).flat().sort((a,b)=>(b.time||0)>(a.time||0)?1:-1).slice(0,32);box.innerHTML='<div class="eyebrow">SITUATION / LIVE FEEDS</div><div class="split"><h2>Explorer la planète.</h2><button class="btn" id="refreshPanel">↻ Actualiser</button></div><div class="row">'+Object.keys(source).map(k=>'<button class="chip '+(S.layers[k]?"on":"")+'" data-layer="'+k+'">'+source[k].name+' · '+S.data[k].length+'</button>').join("")+'</div><h3>Signaux publics récents</h3><p class="muted">Flux non exhaustifs · source et délai propres à chaque fournisseur. Aucune donnée simulée.</p><div class="list">'+(all.length?list(all):'<div class="muted">Aucune donnée chargée. Vérifiez votre connexion et les restrictions CORS.</div>')+'</div>'}
+else if(S.tab==="layers"){box.innerHTML='<div class="eyebrow">VISUALISATION / DATA</div><h2>Couches du globe.</h2><p class="muted">Appuyez pour afficher ou masquer les observations publiques.</p><div class="list">'+Object.keys(source).map(k=>'<button class="item" data-layer="'+k+'"><i class="dot" style="background:'+source[k].color+'"></i><span class="contents"><strong>'+source[k].name+'</strong><small>'+S.data[k].length+' éléments · '+S.health[k]+'</small></span><span class="arrow">'+(S.layers[k]?"●":"○")+'</span></button>').join("")+'</div><h3>Outils de visualisation</h3><div class="row"><button class="btn" id="measurePanel">Mesurer un trajet</button><button class="btn" id="clearMeasure">Effacer mesures</button></div>'}
+else if(S.tab==="radar"){const c=S.center;const nearby=Object.values(S.data).flat().map(p=>({...p,km:distance(c,p)})).sort((a,b)=>a.km-b.km).slice(0,30);box.innerHTML='<div class="eyebrow">LOCAL / PROXIMITÉ</div><h2>Radar de contacts.</h2><p class="muted">Distances géodésiques depuis le dernier centre de navigation : '+c.lat.toFixed(2)+'°, '+c.lon.toFixed(2)+'°. Pour changer le centre, naviguez sur le globe et touchez « Centre actuel ».</p><button class="btn" id="setCenter">◎ Centre actuel</button><div class="list">'+(nearby.length?nearby.map(p=>'<button class="item" data-lat="'+p.lat+'" data-lon="'+p.lon+'"><i class="dot" style="background:'+source[p.type].color+'"></i><span class="contents"><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.source)+' · '+p.km.toFixed(0)+' km</small></span><span class="arrow">↗</span></button>').join(""):'<div class="muted">Pas de contact à afficher</div>')+'</div>'}
+else if(S.tab==="saved"){box.innerHTML='<div class="eyebrow">MISSIONS / PERSONNEL</div><h2>Mes positions.</h2><div class="row"><button class="btn primary" id="addMark">☆ Enregistrer la vue</button><button class="btn" id="exportMarks">Exporter JSON</button></div><div class="list">'+(S.bookmarks.length?S.bookmarks.map((p,i)=>'<button class="item" data-lat="'+p.lat+'" data-lon="'+p.lon+'"><span class="contents"><strong>'+escapeHTML(p.name)+'</strong><small>'+p.lat.toFixed(4)+', '+p.lon.toFixed(4)+'</small></span><span class="arrow">↗</span></button>').join(""):'<p class="muted">Aucune position enregistrée</p>')+'</div>'}
+else{box.innerHTML='<div class="eyebrow">AEGIS EARTH / MOBILE</div><h2>À propos du projet.</h2><p>Version GitHub Pages · globe Cesium 3D · séismes USGS · événements NASA EONET · ISS · radar · mesures · favoris · recherche géographique.</p><h3>État des sources</h3>'+Object.keys(source).map(k=>'<p class="muted">'+source[k].name+' — '+S.health[k]+'</p>').join("")+'<p class="warning">Pages est un hébergement statique : les API qui bloquent CORS échouent sans serveur relais. Les flux d’avions ADS-B, météo spatiale et autres fonctions de la V2 complète demandent le backend Node. « Réçu » ne signifie pas actualisation en continu.</p><p class="muted">Source d’inspiration : <a href="https://github.com/bilawalsidhu/gods-eye-view" target="_blank" rel="noopener">God’s Eye View</a>. Application indépendante.</p><p><a href="https://github.com/Nikoju1977/aegis-earth-mobile" target="_blank" rel="noopener">Code sur GitHub ↗</a></p>'}
+}
+function setTab(tab){S.tab=tab;document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("selected",x.dataset.tab===tab));render()}
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b)setTab(b.dataset.tab)});
+$("#bodyPanel").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+if(d.lat&&d.lon){fly(Number(d.lat),Number(d.lon),650000);$("#sheet").classList.remove("expanded");return}
+if(d.layer){S.layers[d.layer]=!S.layers[d.layer];store("layers",S.layers);renderGlobe();render();return}
+if(b.id==="refreshPanel")refresh();
+if(b.id==="measurePanel"){S.mode="measure";S.route=[];drawRoute();$("#draw").classList.add("active");toast("Touchez le globe pour tracer une route")}
+if(b.id==="clearMeasure"){S.mode="";S.route=[];S.line.forEach(x=>S.v&&S.v.entities.remove(x));S.line=[];$("#draw").classList.remove("active");render()}
+if(b.id==="setCenter"){S.center=centerCamera();render();toast("Radar recentré")}
+if(b.id==="addMark"){const p=centerCamera(),name="Mission "+(S.bookmarks.length+1);S.bookmarks.unshift({...p,name});store("bookmarks",S.bookmarks);toast("Position enregistrée");render()}
+if(b.id==="exportMarks"){const blob=new Blob([JSON.stringify(S.bookmarks,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="aegis-bookmarks.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+});
+$("#handle").onclick=()=>$("#sheet").classList.toggle("expanded");
+$("#locate").onclick=()=>{if(!navigator.geolocation)return toast("Géolocalisation non disponible");navigator.geolocation.getCurrentPosition(p=>{fly(p.coords.latitude,p.coords.longitude,400000);toast("Position affichée")},()=>toast("Autorisation GPS refusée ou indisponible"),{enableHighAccuracy:false,timeout:12000})};
+$("#home").onclick=()=>fly(18,5,19500000);
+$("#reload").onclick=()=>refresh();
+$("#draw").onclick=()=>{S.mode=S.mode==="measure"?"":"measure";$("#draw").classList.toggle("active",S.mode==="measure");toast(S.mode?"Touchez le globe pour créer une mesure":"Mesure terminée")};
+$("#searchBtn").onclick=()=>{$("#searchShade").classList.add("open");$("#query").focus()};
+$("#closeSearch").onclick=()=>$("#searchShade").classList.remove("open");
+$("#query").onkeydown=e=>{if(e.key==="Enter")search()};
+$("#submitSearch").onclick=search;
+async function search(){const q=$("#query").value.trim();if(!q)return;const m=q.match(/^(-?\d{1,2}(?:\.\d+)?)\s*[,;]\s*(-?\d{1,3}(?:\.\d+)?)$/);if(m){const lat=+m[1],lon=+m[2];if(Math.abs(lat)>90||Math.abs(lon)>180)return toast("Coordonnées hors limites");fly(lat,lon);$("#searchShade").classList.remove("open");return}$("#searchResults").innerHTML='<p class="muted">Recherche…</p>';try{const r=await fetchJson("https://photon.komoot.io/api/?q="+encodeURIComponent(q)+"&limit=7&lang=fr"),features=(r.features||[]).filter(x=>x.geometry?.coordinates?.length===2);$("#searchResults").innerHTML=features.length?features.map((x,i)=>'<button class="item" data-result="'+i+'"><span class="contents"><strong>'+escapeHTML(x.properties?.name||q)+'</strong><small>'+escapeHTML([x.properties?.city,x.properties?.country].filter(Boolean).join(", "))+'</small></span>↗</button>').join(""):'<p class="muted">Aucun résultat</p>';$("#searchResults").onclick=e=>{const b=e.target.closest("[data-result]");if(!b)return;const [lon,lat]=features[+b.dataset.result].geometry.coordinates;fly(lat,lon);$("#searchShade").classList.remove("open")}}catch(e){$("#searchResults").innerHTML='<p class="warning">Service de recherche indisponible (réseau ou CORS).</p>'}}
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(()=>{});
+init();render();updateStatus();refresh();setInterval(()=>{if(document.visibilityState==="visible")refresh()},90000);
+})();
+</script>
+</body></html>
