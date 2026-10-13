@@ -17,9 +17,9 @@ Les services distants sont sollicités par le navigateur et peuvent ne pas autor
 
 ## APK Android public (version de test)
 
-[**Télécharger l’APK Android AEGIS Earth Mobile v0.4**](https://github.com/Nikoju1977/aegis-earth-mobile/releases/download/v0.4.0-android-preview/AEGIS-Earth-Mobile-v0.4-android-debug.apk)
+[**Télécharger l’APK Android AEGIS Earth Mobile v0.5**](https://github.com/Nikoju1977/aegis-earth-mobile/releases/download/v0.5.0-android-preview/AEGIS-Earth-Mobile-v0.5-android-debug.apk)
 
-La [publication GitHub v0.4.0-android-preview](https://github.com/Nikoju1977/aegis-earth-mobile/releases/tag/v0.4.0-android-preview) est publique. Ce paquet est une **version de développement** compilée par GitHub Actions, et non une version signée pour Google Play. Pour l’installer sur Android, télécharger l’APK et autoriser temporairement l’installation depuis la source utilisée. Une future mise à jour peut nécessiter de désinstaller l'ancienne application si les certificats debug diffèrent. Sauvegarder d’abord les favoris locaux.
+La [publication GitHub v0.5.0-android-preview](https://github.com/Nikoju1977/aegis-earth-mobile/releases/tag/v0.5.0-android-preview) est publique. Ce paquet est une **version de développement** compilée par GitHub Actions, et non une version signée pour Google Play. Pour l’installer sur Android, télécharger l’APK et autoriser temporairement l’installation depuis la source utilisée. Une future mise à jour peut nécessiter de désinstaller l'ancienne application si les certificats debug diffèrent. Sauvegarder d’abord les favoris locaux.
 
 ## GitHub Pages
 
@@ -80,7 +80,7 @@ Le workflow [Android Debug APK](.github/workflows/android-debug-apk.yml) exécut
 
 **APK de test uniquement** : signé avec la clé de développement de GitHub Actions, sans mise en production Play Store. La clé debug peut varier entre compilations ; une future installation par-dessus l'ancienne peut nécessiter une désinstallation. Sauvegardez les favoris avant toute désinstallation : leurs données sont conservées sur l'appareil.
 
-**Périmètre identique, pas de backend magique** : Android utilise la même édition statique que Pages. Les avions ADS-B, navires AIS, caméras live et autres flux qui exigent un serveur ne sont pas ajoutés par ce workflow. Les services web externes (notamment Cesium et les API publiques) nécessitent Internet.
+**Périmètre identique, pas de backend magique** : Android utilise la même édition statique que Pages. Les caméras publiques TfL peuvent présenter des images/vidéos fournies par leur réseau. Les avions ADS-B sont essayés directement auprès d'Airplanes.live mais peuvent être bloqués par CORS. Un flux AIS en temps réel, la couverture mondiale de webcams via API et les autres flux avec clés privées nécessitent un serveur. Les services web externes (notamment Cesium et les API publiques) nécessitent Internet.
 
 ## Sources et limites
 
