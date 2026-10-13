@@ -2,6 +2,12 @@
 
 Application géospatiale **mobile-first** pour Android (PWA / Capacitor) et navigateur, inspirée de [God's Eye View](https://github.com/bilawalsidhu/gods-eye-view).
 
+## APK Android public (version de test)
+
+[**Télécharger l’APK Android AEGIS Earth Mobile v0.4**](https://github.com/Nikoju1977/aegis-earth-mobile/releases/download/v0.4.0-android-preview/AEGIS-Earth-Mobile-v0.4-android-debug.apk)
+
+La [publication GitHub v0.4.0-android-preview](https://github.com/Nikoju1977/aegis-earth-mobile/releases/tag/v0.4.0-android-preview) est publique. Ce paquet est une **version de développement** compilée par GitHub Actions, et non une version signée pour Google Play. Pour l’installer sur Android, télécharger l’APK et autoriser temporairement l’installation depuis la source utilisée. Une future mise à jour peut nécessiter de désinstaller l'ancienne application si les certificats debug diffèrent. Sauvegarder d’abord les favoris locaux.
+
 ## GitHub Pages
 
 **Site prévu :** https://nikoju1977.github.io/aegis-earth-mobile/
