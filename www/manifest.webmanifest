@@ -1,0 +1,19 @@
+{
+  "name": "AEGIS Earth Mobile",
+  "short_name": "AEGIS Earth",
+  "description": "Globe 3D et données géospatiales publiques",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#060e19",
+  "theme_color": "#060e19",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
