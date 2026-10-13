@@ -1,6 +1,6 @@
-const CACHE = 'aegis-pages-v2-1';
+const CACHE = 'aegis-pages-v2-2';
 const BASE = new URL('./', self.location.href);
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './extras.js', './extras.css'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
   self.skipWaiting();
