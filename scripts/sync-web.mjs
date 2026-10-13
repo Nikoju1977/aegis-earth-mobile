@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const FILES = ['index.html', 'manifest.webmanifest', 'sw.js', 'icon.svg'];
+const FILES = ['index.html', 'manifest.webmanifest', 'sw.js', 'icon.svg', 'extras.js', 'extras.css'];
 const check = process.argv.includes('--check');
 const digest = path => createHash('sha256').update(readFileSync(path)).digest('hex');
 let mismatches = 0;
