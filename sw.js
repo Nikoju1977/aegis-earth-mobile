@@ -1,4 +1,4 @@
-const CACHE = 'aegis-pages-v2-3-map-fallback';
+const CACHE = 'aegis-pages-v2-4-ui';
 const BASE = new URL('./', self.location.href);
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './extras.js', './extras.css'];
 self.addEventListener('install', event => {
