@@ -89,3 +89,9 @@ CesiumJS : moteur de globe ; Esri World Imagery : fond de carte (crédits sur la
 Aucune donnée privée n'est collectée par le projet. Les favoris restent dans le stockage du navigateur. Le GPS exige une autorisation explicite. Cette application ne fournit ni système de surveillance ni accès à des caméras privées.
 
 **Licence :** adapter/clarifier les licences des dépendances et des fonds de cartes avant toute diffusion commerciale. Le code de cette édition est fourni ici à des fins de développement et de test.
+
+## Repli 2D sans WebGL — novembre 2026
+
+Quand le navigateur n'expose pas WebGL ou que Cesium ne s'initialise pas, l'application présente maintenant une carte 2D intégrée fondée sur OpenStreetMap, avec liens vers les observations publiques reçues et accès aux outils de recherche. Le bouton « Réessayer en 3D » tente également le miroir jsDelivr si la bibliothèque principale n'est pas disponible. Les mesures sur le globe restent désactivées en mode 2D (elles ne sont pas simulées).
+
+L'affichage des tuiles OpenStreetMap nécessite un accès réseau ; un lien vers la carte complète reste visible. La version Android Capacitor `www/` est synchronisée sur les fichiers de la racine, et le cache PWA a été renouvelé. **Aucun essai WebGL ni sur téléphone physique n'est revendiqué pour ce correctif.**
