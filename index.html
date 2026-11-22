@@ -11,7 +11,15 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}
 button,input,select{font:inherit}button{cursor:pointer;color:inherit}button:focus-visible,input:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
 #globe{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,#112d43,#030812)}
-#fallback{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:30px;background:radial-gradient(circle at center,#183e52,#030912);color:#c9e1ed;z-index:1}
+#fallback{display:none;position:fixed;inset:0;align-items:center;justify-content:center;text-align:left;padding:calc(80px + env(safe-area-inset-top)) 10px calc(90px + env(safe-area-inset-bottom));background:radial-gradient(circle at center,#183e52,#030912);color:#c9e1ed;z-index:1;pointer-events:auto}
+#fallback .fallback-panel{width:min(780px,100%);max-height:100%;overflow:auto;padding:12px 14px;border:1px solid #427489;border-radius:14px;background:#071826e8;box-shadow:0 18px 55px #0009}
+#fallback h2{font-size:16px;letter-spacing:.04em;margin:0 0 6px}
+#fallback p{color:#b5d5e4;margin:3px 0 9px;font-size:12px}
+#fallbackMap{display:block;width:100%;height:clamp(180px,35vh,390px);border:1px solid #46778b;border-radius:9px;background:#183e52}
+#fallbackSignals{display:flex;gap:7px;overflow-x:auto;overscroll-behavior-x:contain;margin:9px 0;scrollbar-width:thin}
+#fallbackSignals a{flex:0 0 auto;max-width:175px;padding:8px 10px;background:#112e40;border:1px solid #3b6c7e;border-radius:8px;color:#d3eff7;font-size:11px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#fallback .fallback-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#fallback .fallback-actions a{color:#92e6ed;font-size:12px}
 #globe.creditless .cesium-widget-credits{display:none}.cesium-viewer-bottom{bottom:80px!important;opacity:.7;font-size:10px}
 .shade{position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,12,22,.65),transparent 25%,transparent 65%,rgba(4,12,22,.72));z-index:2}
 header{position:fixed;z-index:5;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 12px) 15px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(3,11,21,.9),rgba(3,11,21,.4))}
@@ -108,7 +116,17 @@ button { -webkit-tap-highlight-color:transparent; }
 <link rel="stylesheet" href="./extras.css">
 </head>
 <body>
-<div id="globe" aria-label="Globe tridimensionnel"></div><div id="fallback"><div><h2>Globe 3D indisponible</h2><p>Vérifiez votre connexion et les ressources Cesium.</p><button class="btn" onclick="location.reload()">Réessayer</button></div></div><div class="shade"></div>
+<div id="globe" aria-label="Globe tridimensionnel"></div>
+<div id="fallback" role="region" aria-label="Carte alternative lorsque WebGL est indisponible">
+  <div class="fallback-panel">
+    <h2>Carte 2D · mode de secours</h2>
+    <p id="fallbackReason">Le globe 3D n'est pas disponible sur cet appareil. Les flux publics et la recherche restent accessibles.</p>
+    <iframe id="fallbackMap" title="Carte OpenStreetMap navigable sans WebGL" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div id="fallbackSignals" aria-label="Observations à explorer"></div>
+    <p id="fallbackStatus" role="status">Carte alternative OpenStreetMap · disponibilité soumise au réseau.</p>
+    <div class="fallback-actions"><a id="fallbackLink" href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer">Ouvrir la carte complète</a><button class="btn" id="retry3d" type="button">Réessayer en 3D</button></div>
+  </div>
+</div><div class="shade"></div>
 <header><div class="mark">◎</div><div class="brand"><strong>AEGIS <em>EARTH</em></strong><small>MOBILE COMMAND / PUBLIC DATA</small></div><span class="status" id="status">INITIALISATION</span><button class="iconBtn" id="searchBtn" title="Rechercher un lieu" aria-label="Rechercher un lieu">⌕</button></header>
 <div id="hud"><div class="eyebrow">◆ SITUATION PLANÉTAIRE</div><h1>OBSERVATION TERRESTRE</h1><div id="stats"><div><small>SÉISMES</small><b id="quakeCount">—</b></div><div><small>ÉVÉNEMENTS</small><b id="eventCount">—</b></div><div><small>ISS</small><b id="issCount">—</b></div></div></div>
 <div id="actions"><button id="locate" title="Ma position GPS" aria-label="Ma position GPS">⌖</button><button id="home" title="Retour à la vue mondiale" aria-label="Retour à la vue mondiale">◎</button><button id="draw" title="Tracer une mesure" aria-label="Tracer une mesure">⌁</button><button id="reload" title="Actualiser les données" aria-label="Actualiser les données">↻</button></div>
@@ -123,22 +141,56 @@ button { -webkit-tap-highlight-color:transparent; }
 "use strict";
 const $=s=>document.querySelector(s),escapeHTML=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store=(k,x)=>{try{localStorage.setItem("aegis-pages:"+k,JSON.stringify(x))}catch(e){}},load=(k,d)=>{try{return JSON.parse(localStorage.getItem("aegis-pages:"+k))??d}catch(e){return d}};
-const S={v:null,tab:"live",data:{quake:[],event:[],iss:[]},health:{quake:"en attente",event:"en attente",iss:"en attente"},layers:load("layers",{quake:true,event:true,iss:true}),bookmarks:load("bookmarks",[]),center:{lat:20,lon:5},mode:"",route:[],line:[],refreshAt:0,receivedAt:{}};
+const S={v:null,fallback2d:false,tab:"live",data:{quake:[],event:[],iss:[]},health:{quake:"en attente",event:"en attente",iss:"en attente"},layers:load("layers",{quake:true,event:true,iss:true}),bookmarks:load("bookmarks",[]),center:{lat:20,lon:5},mode:"",route:[],line:[],refreshAt:0,receivedAt:{}};
 const source={quake:{name:"Séismes",color:"#f2b975"},event:{name:"Phénomènes naturels",color:"#ff8f88"},iss:{name:"Station spatiale ISS",color:"#c5adfb"}};
 let t=0;function toast(s){const e=$("#toast");e.textContent=s;e.classList.add("show");clearTimeout(t);t=setTimeout(()=>e.classList.remove("show"),3500)}
 function distance(a,b){const d=Math.PI/180,p=(b.lat-a.lat)*d,l=(b.lon-a.lon)*d,x=Math.sin(p/2)**2+Math.cos(a.lat*d)*Math.cos(b.lat*d)*Math.sin(l/2)**2;return 12742.0176*Math.asin(Math.min(1,Math.sqrt(x)))}
-function fly(lat,lon,height=1400000){S.center={lat,lon};if(S.v)S.v.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(lon,lat,height),duration:2})}
+function fly(lat,lon,height=1400000){
+  if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+  S.center={lat,lon};if(S.v)S.v.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(lon,lat,height),duration:2});
+  else if(S.fallback2d)updateFallbackMap(height);
+}
+function osmPointURL(lat,lon){return 'https://www.openstreetmap.org/?mlat='+encodeURIComponent(lat)+'&mlon='+encodeURIComponent(lon)+'#map=7/'+encodeURIComponent(lat)+'/'+encodeURIComponent(lon)}
+function updateFallbackMap(height=2800000){
+  if(!S.fallback2d)return;
+  const lat=Math.max(-84,Math.min(84,S.center.lat)),lon=Math.max(-180,Math.min(180,S.center.lon));
+  const halfLat=Math.max(.08,Math.min(55,height/120000)),halfLon=Math.max(.08,Math.min(80,halfLat*1.5));
+  const bbox=[lon-halfLon,lat-halfLat,lon+halfLon,lat+halfLat].join(',');
+  const src='https://www.openstreetmap.org/export/embed.html?bbox='+encodeURIComponent(bbox)+'&layer=mapnik&marker='+encodeURIComponent(lat+','+lon);
+  const frame=$('#fallbackMap');if(frame && frame.src!==src)frame.src=src;
+  const link=$('#fallbackLink');if(link)link.href=osmPointURL(lat,lon);
+}
+function renderFallbackSignals(){
+  if(!S.fallback2d)return;
+  const node=$('#fallbackSignals');if(!node)return;
+  const items=Object.values(S.data).flat().filter(p=>S.layers[p.type]&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)).slice(0,12);
+  node.replaceChildren();
+  for(const p of items){
+    const a=document.createElement('a');
+    a.href=osmPointURL(p.lat,p.lon);a.target='_blank';a.rel='noopener noreferrer';
+    a.textContent=(p.type==='quake'?'Séisme · ':p.type==='iss'?'ISS · ':'Événement · ')+(p.name||'Observation');
+    a.title=p.name||'Observation';node.appendChild(a);
+  }
+  if(!items.length){const info=document.createElement('span');info.textContent='Aucun signal reçu pour le moment.';info.style.cssText='font-size:12px;color:#b5d5e4';node.appendChild(info);}
+}
+function show2D(reason){
+  S.fallback2d=true;
+  const panel=$('#fallback');panel.style.display='flex';
+  $('#fallbackReason').textContent=reason+' Les outils de recherche et les listes de données restent disponibles.';
+  updateFallbackMap();renderFallbackSignals();
+  toast('Carte 2D activée (WebGL indisponible)');
+}
 function point(lat,lon,color,size=9){return S.v.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat),point:{pixelSize:size,color:Cesium.Color.fromCssColorString(color),outlineColor:Cesium.Color.fromCssColorString("#04121b"),outlineWidth:2,disableDepthTestDistance:Number.POSITIVE_INFINITY}})}
 function centerCamera(){if(!S.v)return S.center;try{const canvas=S.v.canvas,p=S.v.camera.pickEllipsoid(new Cesium.Cartesian2(canvas.clientWidth/2,canvas.clientHeight/2),S.v.scene.globe.ellipsoid);if(!p)return S.center;const c=Cesium.Cartographic.fromCartesian(p);return {lat:Cesium.Math.toDegrees(c.latitude),lon:Cesium.Math.toDegrees(c.longitude)}}catch(e){return S.center}}
-function init(){if(!window.Cesium){$("#fallback").style.display="flex";toast("Chargement 3D indisponible");return}try{
+function init(){if(!window.Cesium){show2D('Bibliothèque Cesium indisponible.');return}try{
 const layer=new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",credit:"© Esri, Maxar, Earthstar Geographics and GIS User Community",maximumLevel:18}));
 S.v=new Cesium.Viewer("globe",{baseLayer:layer,baseLayerPicker:false,geocoder:false,homeButton:false,fullscreenButton:false,sceneModePicker:false,navigationHelpButton:false,timeline:false,animation:false,infoBox:false,selectionIndicator:false,terrainProvider:new Cesium.EllipsoidTerrainProvider(),requestRenderMode:true});
 S.v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(5,18,19500000)});
 S.v.scene.globe.enableLighting=false;
 const h=new Cesium.ScreenSpaceEventHandler(S.v.canvas);h.setInputAction(ev=>{const picked=S.v.camera.pickEllipsoid(ev.position);if(!picked)return;const c=Cesium.Cartographic.fromCartesian(picked),lat=Cesium.Math.toDegrees(c.latitude),lon=Cesium.Math.toDegrees(c.longitude);if(S.mode==="measure"){S.route.push({lat,lon});drawRoute();return}const found=S.v.scene.pick(ev.position);if(found&&found.id&&found.id.aegisExtra){window.AEGISExtras?.onEntityClick?.(found.id.aegisExtra);return}if(found&&found.id&&found.id.aegis){const p=found.id.aegis;toast(p.name);fly(p.lat,p.lon,750000)}},Cesium.ScreenSpaceEventType.LEFT_CLICK);
 S.v.scene.requestRender();
-}catch(e){console.warn(e);$("#fallback").style.display="flex";toast("Initialisation du globe impossible")} }
-function renderGlobe(){if(!S.v)return;S.v.entities.removeAll();for(const [key,items]of Object.entries(S.data)){if(!S.layers[key])continue;items.forEach(o=>{const entity=point(o.lat,o.lon,source[key].color,key==="iss"?14:key==="quake"?Math.max(5,Math.min(16,5+(o.mag||0)*1.5)):7);entity.aegis=o})}drawRoute();window.AEGISExtras?.drawEntities?.();S.v.scene.requestRender()}
+}catch(e){console.warn('AEGIS WebGL',e);if(S.v){try{S.v.destroy()}catch(_){}S.v=null}show2D('Rendu 3D impossible sur ce navigateur.')} }
+function renderGlobe(){if(!S.v){renderFallbackSignals();return}S.v.entities.removeAll();for(const [key,items]of Object.entries(S.data)){if(!S.layers[key])continue;items.forEach(o=>{const entity=point(o.lat,o.lon,source[key].color,key==="iss"?14:key==="quake"?Math.max(5,Math.min(16,5+(o.mag||0)*1.5)):7);entity.aegis=o})}drawRoute();window.AEGISExtras?.drawEntities?.();S.v.scene.requestRender()}
 function drawRoute(){if(!S.v)return;S.line.forEach(e=>S.v.entities.remove(e));S.line=[];if(S.route.length){S.route.forEach(p=>S.line.push(point(p.lat,p.lon,"#78efd5",7)));if(S.route.length>1)S.line.push(S.v.entities.add({polyline:{positions:Cesium.Cartesian3.fromDegreesArray(S.route.flatMap(p=>[p.lon,p.lat])),width:3,material:Cesium.Color.fromCssColorString("#78efd5")}}))}let km=0;for(let i=1;i<S.route.length;i++)km+=distance(S.route[i-1],S.route[i]);if(S.mode==="measure")toast(S.route.length+" points · "+km.toFixed(1)+" km")}
 const fetchJson=async(url,ms=10000)=>{const c=new AbortController(),tid=setTimeout(()=>c.abort(),ms);try{const r=await fetch(url,{signal:c.signal,headers:{Accept:"application/json"}});if(!r.ok)throw Error("HTTP "+r.status);return await r.json()}finally{clearTimeout(tid)}};
 async function loadFeed(key,url,parse){
@@ -195,7 +247,7 @@ $("#bodyPanel").addEventListener("click",e=>{const b=e.target.closest("button");
 if(d.lat&&d.lon){fly(Number(d.lat),Number(d.lon),650000);sheetState("closed");return}
 if(d.layer){S.layers[d.layer]=!S.layers[d.layer];store("layers",S.layers);renderGlobe();render();return}
 if(b.id==="refreshPanel")refresh();
-if(b.id==="measurePanel"){S.mode="measure";S.route=[];drawRoute();$("#draw").classList.add("active");toast("Touchez la carte pour tracer la route");sheetState("closed")}
+if(b.id==="measurePanel"){if(S.fallback2d){toast("Mesure sur globe 3D uniquement. Utilisez la carte OSM complète.");return}S.mode="measure";S.route=[];drawRoute();$("#draw").classList.add("active");toast("Touchez la carte pour tracer la route");sheetState("closed")}
 if(b.id==="clearMeasure"){S.mode="";S.route=[];S.line.forEach(x=>S.v&&S.v.entities.remove(x));S.line=[];$("#draw").classList.remove("active");render()}
 if(b.id==="setCenter"){S.center=centerCamera();render();toast("Radar recentré")}
 if(b.id==="addMark"){const p=centerCamera(),name="Mission "+(S.bookmarks.length+1);S.bookmarks.unshift({...p,name});store("bookmarks",S.bookmarks);toast("Position enregistrée");render()}
@@ -213,7 +265,7 @@ $("#handle").onclick=()=>{if(swiped){swiped=false;return}const state=$("#sheet")
 $("#locate").onclick=()=>{if(!navigator.geolocation)return toast("Géolocalisation non disponible");navigator.geolocation.getCurrentPosition(p=>{fly(p.coords.latitude,p.coords.longitude,400000);toast("Position affichée")},()=>toast("Autorisation GPS refusée ou indisponible"),{enableHighAccuracy:false,timeout:12000})};
 $("#home").onclick=()=>fly(18,5,19500000);
 $("#reload").onclick=()=>refresh();
-$("#draw").onclick=()=>{S.mode=S.mode==="measure"?"":"measure";$("#draw").classList.toggle("active",S.mode==="measure");toast(S.mode?"Touchez la carte pour tracer":"Mesure terminée");if(S.mode)sheetState("closed")};
+$("#draw").onclick=()=>{if(S.fallback2d){toast("Mesure 3D indisponible. Ouvrez OpenStreetMap pour mesurer.");return}S.mode=S.mode==="measure"?"":"measure";$("#draw").classList.toggle("active",S.mode==="measure");toast(S.mode?"Touchez la carte pour tracer":"Mesure terminée");if(S.mode)sheetState("closed")};
 $("#searchBtn").onclick=()=>{$("#searchShade").classList.add("open");$("#query").focus()};
 $("#closeSearch").onclick=()=>$("#searchShade").classList.remove("open");
 $("#query").onkeydown=e=>{if(e.key==="Enter")search()};
@@ -221,7 +273,25 @@ $("#submitSearch").onclick=search;
 async function search(){const q=$("#query").value.trim();if(!q)return;const m=q.match(/^(-?\d{1,2}(?:\.\d+)?)\s*[,;]\s*(-?\d{1,3}(?:\.\d+)?)$/);if(m){const lat=+m[1],lon=+m[2];if(Math.abs(lat)>90||Math.abs(lon)>180)return toast("Coordonnées hors limites");fly(lat,lon);$("#searchShade").classList.remove("open");return}$("#searchResults").innerHTML='<p class="muted">Recherche…</p>';try{const r=await fetchJson("https://photon.komoot.io/api/?q="+encodeURIComponent(q)+"&limit=7&lang=fr"),features=(r.features||[]).filter(x=>x.geometry?.coordinates?.length===2);$("#searchResults").innerHTML=features.length?features.map((x,i)=>'<button class="item" data-result="'+i+'"><span class="contents"><strong>'+escapeHTML(x.properties?.name||q)+'</strong><small>'+escapeHTML([x.properties?.city,x.properties?.country].filter(Boolean).join(", "))+'</small></span>↗</button>').join(""):'<p class="muted">Aucun résultat</p>';$("#searchResults").onclick=e=>{const b=e.target.closest("[data-result]");if(!b)return;const [lon,lat]=features[+b.dataset.result].geometry.coordinates;fly(lat,lon);$("#searchShade").classList.remove("open")}}catch(e){$("#searchResults").innerHTML='<p class="warning">Service de recherche indisponible (réseau ou CORS).</p>'}}
 if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(()=>{});
 window.AEGISBridge={state:S,fly,centerCamera,toast,escapeHTML,distance,refreshGlobe:renderGlobe,closeSheet:()=>sheetState("closed")};
-sheetState("closed");init();render();updateStatus();refresh();setInterval(()=>{if(document.visibilityState==="visible")refresh()},90000);
+sheetState("closed");init();render();updateStatus();refresh();
+$("#retry3d").addEventListener('click',()=>{
+  if(window.Cesium){
+    S.fallback2d=false;$("#fallback").style.display="none";
+    init();if(S.v)renderGlobe();
+    return;
+  }
+  // Seconde source CDN si le téléchargement direct de Cesium a échoué.
+  const base='https://cdn.jsdelivr.net/npm/cesium@1.132.0/Build/Cesium/';
+  window.CESIUM_BASE_URL=base;
+  const css=document.createElement('link');css.rel='stylesheet';css.href=base+'Widgets/widgets.css';document.head.appendChild(css);
+  const script=document.createElement('script');script.src=base+'Cesium.js';
+  script.onload=()=>{if(!window.Cesium){toast('Bibliothèque de secours indisponible');return}
+    S.fallback2d=false;$("#fallback").style.display="none";init();if(S.v)renderGlobe();
+  };
+  script.onerror=()=>toast('Deuxième CDN inaccessible : mode 2D conservé');
+  document.head.appendChild(script);
+});
+setInterval(()=>{if(document.visibilityState==="visible")refresh()},90000);
 })();
 </script>
 <script src="./extras.js"></script>
