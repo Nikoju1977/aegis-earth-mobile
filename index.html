@@ -114,6 +114,31 @@ button { -webkit-tap-highlight-color:transparent; }
 .limits{margin-top:20px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#0d2130}.limits summary{cursor:pointer;color:#80e4d5;font-weight:600;list-style-position:inside}.limits[open] summary{margin-bottom:12px}
 </style>
 <link rel="stylesheet" href="./extras.css">
+<style id="studio-niko-ui-v7">
+
+/* STUDIO NIKO UI V7 — cartographie mobile et outils accessibles */
+:where(button,a,input,select):focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+:where(.btn,.chip,.nav button,.item){touch-action:manipulation}
+:where(.nav button,.btn,.chip){min-height:44px}
+#bodyPanel{-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+#bodyPanel :where(.item,.warning,.muted){overflow-wrap:anywhere}
+#searchShade{overscroll-behavior:contain}
+#searchResults{max-height:45dvh;overflow-y:auto;overscroll-behavior:contain}
+#fallbackMap{min-height:160px}
+@media(max-width:480px){
+  .nav{gap:2px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding-left:7px;padding-right:7px}
+  .nav button{min-width:58px;flex:1 0 58px;font-size:11px}
+  #bodyPanel{padding:10px 12px calc(24px + env(safe-area-inset-bottom))}
+  .item{padding:11px 10px}
+  .item strong{white-space:normal;line-height:1.35}
+  .searchBox{padding:14px}
+  .searchBox :where(input,select){font-size:16px}
+  #fallback .fallback-panel{padding:12px}
+  #fallback .fallback-actions .btn{min-height:46px}
+}
+@media(prefers-reduced-motion:reduce){#sheet,#bodyPanel,#toast{transition:none!important}}
+
+</style>
 </head>
 <body>
 <div id="globe" aria-label="Globe tridimensionnel"></div>
