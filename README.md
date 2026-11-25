@@ -1,4 +1,30 @@
-# AEGIS Earth Mobile
+# AEGIS Earth Mobile — Studio Niko Design
+
+**Public geospatial data explorer · CesiumJS 3D / 2D fallback · PWA and Android development build**
+
+[![Cesium](https://img.shields.io/badge/CesiumJS-1.132-blue)](index.html) · [Android configuration](capacitor.config.json) · [English overview](#english-overview)
+
+## Architecture réelle
+
+```mermaid
+flowchart TD
+ Public[Public geospatial providers] --> Fetch[Browser requests and parsing]
+ Fetch --> Status[Availability and timestamps]
+ Status --> Map[Cesium globe or 2D fallback]
+ Search[Search and optional GPS] --> Map
+ Map --> Local[Local favorites and route measurements]
+ Root[Root web sources] --> Android[Synced Capacitor web assets]
+```
+
+| Source | Fonction constatée |
+| --- | --- |
+| [index.html](index.html) | Globe CesiumJS 1.132, distances sphériques, couches USGS/NASA/ISS, recherche et repli 2D |
+| [extras.js](extras.js) | Adaptateurs météo, air, caméras publiques et autres flux publics ; import GeoJSON |
+| [scripts/sync-web.mjs](scripts/sync-web.mjs) | Synchronisation des sources web vers Capacitor |
+| [package.json](package.json) | Capacitor 7, scripts de vérification et de compilation |
+| [sw.js](sw.js) | Cache du shell applicatif |
+
+Le calcul de distance utilise la formule de Haversine sur une sphère ; il ne s'agit pas d'un calcul d'itinéraire routier ni d'une mesure géodésique certifiée. Les réponses des fournisseurs sont partielles et peuvent échouer. Les horodatages de réception ne prouvent pas la fraîcheur des observations à la source.
 
 Application géospatiale **mobile-first** pour Android (PWA / Capacitor) et navigateur, inspirée de [God's Eye View](https://github.com/bilawalsidhu/gods-eye-view).
 
@@ -86,7 +112,7 @@ Le workflow [Android Debug APK](.github/workflows/android-debug-apk.yml) exécut
 
 CesiumJS : moteur de globe ; Esri World Imagery : fond de carte (crédits sur la carte) ; USGS : séismes ; NASA EONET : événements ; Where The ISS At : ISS ; Photon / OpenStreetMap : recherche. Les sources sont soumises à leurs licences, quotas et conditions d'utilisation. Les couches ne sont pas exhaustives.
 
-Aucune donnée privée n'est collectée par le projet. Les favoris restent dans le stockage du navigateur. Le GPS exige une autorisation explicite. Cette application ne fournit ni système de surveillance ni accès à des caméras privées.
+Aucun backend de collecte privé n'est établi dans cette édition ; les requêtes vers les services tiers peuvent toutefois transmettre la zone consultée et des informations de connexion. Les favoris restent dans le stockage du navigateur. Le GPS exige une autorisation explicite. Cette application ne fournit ni système de surveillance ni accès à des caméras privées.
 
 **Licence :** adapter/clarifier les licences des dépendances et des fonds de cartes avant toute diffusion commerciale. Le code de cette édition est fourni ici à des fins de développement et de test.
 
@@ -95,3 +121,14 @@ Aucune donnée privée n'est collectée par le projet. Les favoris restent dans 
 Quand le navigateur n'expose pas WebGL ou que Cesium ne s'initialise pas, l'application présente maintenant une carte 2D intégrée fondée sur OpenStreetMap, avec liens vers les observations publiques reçues et accès aux outils de recherche. Le bouton « Réessayer en 3D » tente également le miroir jsDelivr si la bibliothèque principale n'est pas disponible. Les mesures sur le globe restent désactivées en mode 2D (elles ne sont pas simulées).
 
 L'affichage des tuiles OpenStreetMap nécessite un accès réseau ; un lien vers la carte complète reste visible. La version Android Capacitor `www/` est synchronisée sur les fichiers de la racine, et le cache PWA a été renouvelé. **Aucun essai WebGL ni sur téléphone physique n'est revendiqué pour ce correctif.**
+
+
+## Qualification proposée — géospatial et confidentialité
+
+Sur des données synthétiques, vérifier le rejet de coordonnées invalides, les distances de référence, le repli sans WebGL, les états d'indisponibilité, les imports et exports ainsi que la parité des sources Android et web. Examiner la transmission des coordonnées aux fournisseurs et la protection des favoris locaux ; la géolocalisation requiert une permission et les services externes peuvent recevoir la zone de consultation. Ne pas utiliser pour des décisions de navigation, d'urgence ou de surveillance de personnes.
+
+Le manifeste [package.json](package.json) indique MIT ; aucun fichier de licence autonome n'a été identifié à la racine inspectée. Clarifier les droits applicables avant redistribution, en conservant les attributions du projet d'inspiration, des bibliothèques et des données. Aucun changement de licence effectué.
+
+## English overview
+
+AEGIS Earth Mobile is an exploratory geospatial viewer with CesiumJS, a 2D fallback, public data adapters, spherical distances and local favorites. Its Android development edition uses synchronized web assets through Capacitor. Data availability and completeness depend on external services. No private camera access or live AIS backend is implemented. Location-related requests can disclose coordinates to providers. Do not use this prototype for safety-critical navigation or surveillance. No new API, WebGL, device, APK or deployment tests were performed in this documentation revision.
